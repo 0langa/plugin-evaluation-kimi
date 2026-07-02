@@ -7,16 +7,25 @@ Run the PluginEval quality evaluation on a plugin or skill directory.
 
 ## Usage
 
-/eval <path> — evaluate at standard depth (static + LLM judge)
-/eval <path> --depth quick — static analysis only (instant)
+Use the arguments supplied after the slash command as CLI arguments:
+
+```bash
+uv run plugin-eval score $ARGUMENTS
+```
+
+Examples:
+
+```bash
+uv run plugin-eval score ./skills/evaluation-methodology --depth quick --output json
+uv run plugin-eval score C:\path\to\plugin --depth standard --provider kimi
+```
 
 ## Process
 
 ### Step 1: Run Static Analysis (Layer 1)
 
 ```bash
-cd "${PLUGIN_ROOT}"
-uv run plugin-eval score {argument} --depth quick --output json
+uv run plugin-eval score <path> --depth quick --output json
 ```
 
 Parse the JSON output to get `composite.score`, `composite.dimensions`, and `layers[0].anti_patterns`.

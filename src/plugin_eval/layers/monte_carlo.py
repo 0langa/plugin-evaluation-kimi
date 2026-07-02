@@ -33,6 +33,7 @@ class SimResult:
     duration_ms: int
     errored: bool = False
     prompt: str = ""
+    error_message: str = ""
 
 
 @dataclass
@@ -103,7 +104,7 @@ expected correctness, completeness, and usefulness. If not activated, use qualit
             prompt=prompt,
         )
 
-    except Exception:
+    except Exception as exc:
         return SimResult(
             activated=False,
             quality_score=0.0,
@@ -111,6 +112,7 @@ expected correctness, completeness, and usefulness. If not activated, use qualit
             duration_ms=0,
             errored=True,
             prompt=prompt,
+            error_message=f"{type(exc).__name__}: {exc}"[:500],
         )
 
 
@@ -172,10 +174,21 @@ class MonteCarloAnalyzer:
             "token_efficiency": token_efficiency,
         }
 
+        # Deduplicated, order-preserved sample of what actually failed. Errors
+        # were previously discarded entirely (bare `except Exception: pass`),
+        # so a nonzero n_errored gave no way to diagnose the cause.
+        error_samples: list[str] = []
+        for r in results:
+            if r.errored and r.error_message and r.error_message not in error_samples:
+                error_samples.append(r.error_message)
+            if len(error_samples) >= 5:
+                break
+
         metadata: dict = {
             "n_runs": len(results),
             "n_activated": sum(1 for r in results if r.activated),
             "n_errored": sum(1 for r in results if r.errored),
+            "error_samples": error_samples,
         }
 
         return LayerResult(

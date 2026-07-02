@@ -8,6 +8,7 @@ Run a pairwise comparison between two skills and report which is better on each 
 ## Running
 
 ```bash
-cd plugins/plugin-eval
-uv run plugin-eval compare {argument}
+uv run plugin-eval compare $ARGUMENTS
 ```
+
+If the arguments are missing, ask for two skill or plugin paths before running the command.

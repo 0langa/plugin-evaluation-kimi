@@ -50,44 +50,74 @@ def _schema_required_keys(schema: dict[str, Any] | None) -> set[str]:
     return set()
 
 
-def _parse_json_response(text: str, schema: dict[str, Any] | None = None) -> Any:
-    stripped = re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", text).strip()
-    fence_match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", stripped)
-    if fence_match:
-        stripped = fence_match.group(1).strip()
-    required_keys = _schema_required_keys(schema)
-    try:
-        data = json.loads(stripped)
-        if (
-            not required_keys
-            or not isinstance(data, dict)
-            or required_keys.issubset(data.keys())
-        ):
-            return data
-    except json.JSONDecodeError:
-        pass
+def _scan_json_candidates(text: str, required_keys: set[str]) -> tuple[Any, list[Any]]:
+    """Scan every `{`/`[` position with a real JSON decoder (not regex).
 
+    Returns (match, all_candidates). `match` is the first candidate dict
+    containing all required_keys, or None. Because this uses
+    json.JSONDecoder.raw_decode, embedded characters inside a JSON string
+    value (including literal ``` sequences) are handled correctly -- unlike
+    a regex-based fence search, which has no concept of JSON string
+    escaping and can be fooled by markdown fences nested inside a JSON
+    string field.
+    """
     decoder = json.JSONDecoder()
     candidates: list[Any] = []
-    for index, char in enumerate(stripped):
+    for index, char in enumerate(text):
         if char not in "[{":
             continue
         try:
-            data, _ = decoder.raw_decode(stripped[index:])
+            data, _ = decoder.raw_decode(text[index:])
         except json.JSONDecodeError:
             continue
         candidates.append(data)
         if isinstance(data, dict) and required_keys.issubset(data.keys()):
-            return data
+            return data, candidates
+    return None, candidates
+
+
+def _parse_json_response(text: str, schema: dict[str, Any] | None = None) -> Any:
+    original = re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", text).strip()
+    required_keys = _schema_required_keys(schema)
+
+    # Fast path: a single ```json ... ``` fence with nothing else inside it.
+    # Tried first (cheap, common case), but NOT trusted blindly -- if the
+    # JSON's own string values contain embedded ``` (e.g. a "response" field
+    # that itself quotes a ```bash example command), the first non-greedy
+    # regex match stops at that inner fence, truncating the real JSON well
+    # before its closing brace. Confirmed live: 3/50 Monte Carlo runs failed
+    # this way even though the model's full response was valid JSON.
+    fence_match = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", original)
+    if fence_match:
+        fenced = fence_match.group(1).strip()
+        try:
+            data = json.loads(fenced)
+            if (
+                not required_keys
+                or not isinstance(data, dict)
+                or required_keys.issubset(data.keys())
+            ):
+                return data
+        except json.JSONDecodeError:
+            pass
+
+    # Always fall back to scanning the ORIGINAL untouched text, not the
+    # (possibly truncated) fenced text -- raw_decode correctly skips over
+    # nested ``` sequences because they're just ordinary characters inside
+    # a properly escaped JSON string as far as a real JSON parser is
+    # concerned.
+    match, candidates = _scan_json_candidates(original, required_keys)
+    if match is not None:
+        return match
     if required_keys:
         raise json.JSONDecodeError(
             f"No JSON object contains required keys: {sorted(required_keys)}",
-            stripped,
+            original,
             0,
         )
     if candidates:
         return candidates[-1]
-    raise json.JSONDecodeError("No JSON object found", stripped, 0)
+    raise json.JSONDecodeError("No JSON object found", original, 0)
 
 
 def _kimi_command(model: str | None, prompt: str) -> list[str]:
@@ -139,14 +169,37 @@ def _query_sync(
     user_key = _get_env("PLUGIN_EVAL_KIMI_API_KEY")
     if user_key and "PLUGIN_EVAL_KIMI_API_KEY" not in env:
         env["PLUGIN_EVAL_KIMI_API_KEY"] = user_key
-    with tempfile.TemporaryDirectory(prefix="plugin-eval-kimi-") as temp_dir:
+    # ignore_cleanup_errors: on Windows, deleting the temp dir on __exit__ can
+    # race a just-killed child process that hasn't fully released its file
+    # handle yet (WinError 32, "used by another process"). Since the return
+    # statements below live inside this with-block, a cleanup-time exception
+    # would discard an already-successful, already-parsed result. Confirmed
+    # live: 1/50 Monte Carlo runs failed with exactly this PermissionError
+    # despite Kimi's response having already parsed correctly.
+    with tempfile.TemporaryDirectory(
+        prefix="plugin-eval-kimi-", ignore_cleanup_errors=True
+    ) as temp_dir:
         stdout_path = os.path.join(temp_dir, "stdout.txt")
         stderr_path = os.path.join(temp_dir, "stderr.txt")
         with open(stdout_path, "w+b") as stdout_file, open(stderr_path, "w+b") as stderr_file:
             creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
             process = subprocess.Popen(
                 _kimi_command(model, instructions),
-                cwd=os.getcwd(),
+                # Run from the isolated temp dir, not the caller's real cwd.
+                # Unlike Codex (see codex_backend.py's --disable plugins
+                # --disable hooks --ignore-user-config), the Kimi CLI has no
+                # flag to suppress project-scoped hooks for a single -p
+                # invocation. If the caller's cwd is a project with an
+                # active Kimi hook (e.g. RECALL's UserPromptSubmit hook),
+                # that hook fires inside this "clean" evaluation subprocess
+                # and injects extra text into stdout before the actual
+                # response, corrupting JSON parsing (confirmed live: 4/50
+                # Monte Carlo runs failed with "Kimi Code returned invalid
+                # JSON" containing an injected "Curated RECALL project
+                # memory" block). The skill content is passed entirely via
+                # the prompt text, so the subprocess has no need to run from
+                # the real project directory at all.
+                cwd=temp_dir,
                 env=env,
                 stdout=stdout_file,
                 stderr=stderr_file,

@@ -1,0 +1,13 @@
+{
+  "name": "plugin-evaluation-kimi-local",
+  "description": "Local marketplace for installing the plugin-evaluation-kimi plugin from this checkout.",
+  "owner": {
+    "name": "PluginEval contributors"
+  },
+  "plugins": [
+    {
+      "name": "plugin-evaluation-kimi",
+      "source": "./"
+    }
+  ]
+}

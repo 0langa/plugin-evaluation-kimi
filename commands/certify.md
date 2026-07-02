@@ -10,6 +10,7 @@ This can take 15-20 minutes and reuses the current Codex CLI authentication for 
 ## Running
 
 ```bash
-cd plugins/plugin-eval
-uv run plugin-eval certify {argument} --output markdown
+uv run plugin-eval certify $ARGUMENTS --output markdown
 ```
+
+If no target path is supplied, ask for the plugin or skill path before running certification.

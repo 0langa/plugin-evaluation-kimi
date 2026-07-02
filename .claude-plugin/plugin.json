@@ -1,0 +1,9 @@
+{
+  "name": "plugin-evaluation-kimi",
+  "version": "0.1.0",
+  "description": "Three-layer quality evaluation for OpenAI Codex plugins and skills, usable from Claude Code with Kimi or Codex as the judge provider.",
+  "author": {
+    "name": "PluginEval contributors"
+  },
+  "skills": "./skills/"
+}
