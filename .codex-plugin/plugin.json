@@ -1,6 +1,6 @@
 {
   "name": "plugin-evaluation-kimi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Three-layer quality evaluation for OpenAI Codex plugins and skills using Kimi by default.",
   "author": {
     "name": "PluginEval contributors"
@@ -19,6 +19,11 @@
     "brandColor": "#7C5CFF",
     "defaultPrompt": [
       "Score this Codex skill with Kimi and explain its weakest dimensions."
+    ],
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png",
+    "screenshots": [
+      "./assets/screenshot-1.png"
     ]
   }
 }

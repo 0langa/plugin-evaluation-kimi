@@ -1,6 +1,6 @@
 {
   "name": "plugin-evaluation-kimi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Three-layer quality evaluation for Codex, Claude Code, and Kimi Code plugins and skills.",
   "keywords": [
     "plugin-evaluation",
