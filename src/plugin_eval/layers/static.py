@@ -212,7 +212,8 @@ class StaticAnalyzer:
         # ORPHAN_REFERENCE: a file in references/ that is explicitly mentioned in SKILL.md
         # via a dead link (i.e. listed in a "[text](references/file)" but does not exist).
         if skill.has_references:
-            content = skill.raw_content
+            content = re.sub(r"```.*?```", "", skill.raw_content, flags=re.DOTALL)
+            content = re.sub(r"`[^`\n]+`", "", content)
             # Find all markdown links that point into references/
             linked_refs = re.findall(r"\(references/([^)]+)\)", content)
             existing = {f.lower() for f in skill.reference_files}

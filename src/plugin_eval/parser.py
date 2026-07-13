@@ -93,7 +93,7 @@ def parse_skill(skill_dir: Path) -> ParsedSkill:
     must_pattern = re.compile(r"\b(MUST|NEVER|ALWAYS)\b")
     must_count = len(must_pattern.findall(content))
 
-    cross_refs = re.findall(r"(?:skill|skills)/([a-z0-9-]+)", body)
+    cross_refs = _extract_cross_references(body)
 
     return ParsedSkill(
         path=skill_dir,
@@ -134,7 +134,7 @@ def parse_agent(agent_path: Path) -> ParsedAgent:
     description = frontmatter.get("description", "")
     has_proactive = bool(re.search(r"use proactively", description, re.IGNORECASE))
 
-    skill_refs = re.findall(r"(?:skill|skills)/([a-z0-9-]+)", body)
+    skill_refs = _extract_cross_references(body)
 
     return ParsedAgent(
         path=agent_path,
@@ -198,3 +198,19 @@ def _split_frontmatter(content: str) -> tuple[dict, str]:
         frontmatter = {}
 
     return frontmatter, parts[2]
+
+
+def _extract_cross_references(content: str) -> list[str]:
+    """Return semantic sibling skill references, excluding filesystem examples.
+
+    Paths such as ``~/.codex/skills/foo`` and generic prose such as
+    ``skills/plugins`` are not ecosystem links and must not produce dead-reference
+    findings.
+    """
+
+    candidates = re.findall(
+        r"(?<![./~])(?:skill|skills)/([a-z0-9][a-z0-9-]*)(?![/a-z0-9-])",
+        content,
+    )
+    generic_terms = {"agent", "agents", "plugin", "plugins", "skill", "skills"}
+    return [candidate for candidate in candidates if candidate not in generic_terms]

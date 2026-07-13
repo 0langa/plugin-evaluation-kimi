@@ -54,6 +54,38 @@ class TestStaticAnalyzer:
         weak = "A skill."
         assert analyzer._description_pushiness(good) > analyzer._description_pushiness(weak)
 
+    def test_literal_reference_example_is_not_an_orphan(self, tmp_path: Path):
+        skill_dir = _make_skill(
+            tmp_path,
+            "Use this skill when documenting reference-link conventions.",
+        )
+        (skill_dir / "references").mkdir()
+        skill_file = skill_dir / "SKILL.md"
+        skill_file.write_text(
+            skill_file.read_text()
+            + "\nExample syntax: `[text](references/filename.md)`.\n"
+        )
+
+        result = StaticAnalyzer().analyze_skill(skill_dir)
+
+        assert "ORPHAN_REFERENCE" not in [ap.flag for ap in result.anti_patterns]
+
+    def test_missing_reference_link_is_an_orphan(self, tmp_path: Path):
+        skill_dir = _make_skill(
+            tmp_path,
+            "Use this skill when documenting reference-link conventions.",
+        )
+        (skill_dir / "references").mkdir()
+        skill_file = skill_dir / "SKILL.md"
+        skill_file.write_text(
+            skill_file.read_text()
+            + "\nRead [the missing guide](references/missing.md).\n"
+        )
+
+        result = StaticAnalyzer().analyze_skill(skill_dir)
+
+        assert "ORPHAN_REFERENCE" in [ap.flag for ap in result.anti_patterns]
+
 
 class TestTriggerPattern:
     """Regression coverage for the broadened trigger-phrase matcher.

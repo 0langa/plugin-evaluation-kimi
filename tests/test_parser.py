@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from plugin_eval.parser import ParsedSkill, ParsedAgent, ParsedPlugin, parse_skill, parse_agent, parse_plugin
+from plugin_eval.parser import (
+    parse_agent,
+    parse_plugin,
+    parse_skill,
+)
 
 
 class TestParseSkill:
@@ -27,6 +31,19 @@ class TestParseSkill:
         empty.mkdir()
         with pytest.raises(FileNotFoundError):
             parse_skill(empty)
+
+    def test_cross_references_exclude_paths_and_generic_prose(self, tmp_path: Path):
+        skill_dir = tmp_path / "routing-skill"
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            "---\nname: routing-skill\ndescription: Use when routing work.\n---\n\n"
+            "Sibling routes: skills/save-insight.\n"
+            "Scan ~/.codex/skills/muteman and discuss skills/plugins.\n"
+        )
+
+        skill = parse_skill(skill_dir)
+
+        assert skill.cross_references == ["save-insight"]
 
 
 class TestParseAgent:
