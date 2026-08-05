@@ -237,3 +237,17 @@ class TestTriggerExemptions:
         result = analyzer.analyze_skill(skill_dir)
         flags = [ap.flag for ap in result.anti_patterns]
         assert "MISSING_TRIGGER" in flags
+
+    def test_when_to_use_is_recognized_as_trigger_metadata(self, tmp_path: Path) -> None:
+        skill_dir = _make_skill_with_frontmatter(
+            tmp_path,
+            [
+                "name: trigger-alias",
+                "description: Evaluate plugin quality and report findings.",
+                "when_to_use: Use this skill when auditing a plugin's quality.",
+            ],
+        )
+
+        result = StaticAnalyzer().analyze_skill(skill_dir)
+
+        assert "MISSING_TRIGGER" not in [ap.flag for ap in result.anti_patterns]

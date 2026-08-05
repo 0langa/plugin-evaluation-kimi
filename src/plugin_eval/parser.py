@@ -95,10 +95,12 @@ def parse_skill(skill_dir: Path) -> ParsedSkill:
 
     cross_refs = _extract_cross_references(body)
 
+    description = _skill_description(frontmatter)
+
     return ParsedSkill(
         path=skill_dir,
         name=frontmatter.get("name", skill_dir.name),
-        description=frontmatter.get("description", ""),
+        description=description,
         line_count=len(content.split("\n")),
         h2_count=h2_count,
         h3_count=h3_count,
@@ -116,6 +118,16 @@ def parse_skill(skill_dir: Path) -> ParsedSkill:
         raw_content=content,
         frontmatter=frontmatter,
     )
+
+
+def _skill_description(frontmatter: dict) -> str:
+    """Return all supported skill-trigger metadata as one description string."""
+    parts = [
+        value.strip()
+        for key in ("description", "when_to_use")
+        if isinstance(value := frontmatter.get(key), str) and value.strip()
+    ]
+    return " ".join(dict.fromkeys(parts))
 
 
 def parse_agent(agent_path: Path) -> ParsedAgent:

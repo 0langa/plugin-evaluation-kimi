@@ -58,4 +58,4 @@ Kimi registers the `skills/` directory and namespaced slash commands from `comma
 
 ## Documentation
 
-See **[docs/plugin-eval.md](../../docs/plugin-eval.md)** for the full reference: layers, dimensions, scoring formula, anti-patterns, statistical methods, and project structure.
+See the in-repository **[evaluation methodology](skills/evaluation-methodology/SKILL.md)** for layers, dimensions, scoring formulas, anti-patterns, statistical methods, and project structure.

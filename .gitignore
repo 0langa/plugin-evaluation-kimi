@@ -23,3 +23,7 @@ build/
 outputs/
 work/
 *.log
+
+# Local RECALL project memory
+.recall/
+.codex_memory/

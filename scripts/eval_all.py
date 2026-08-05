@@ -1,16 +1,17 @@
-"""Batch-evaluate every local plugin and write per-plugin JSON + a summary report.
+"""Batch-evaluate one plugin root or a directory of plugin roots.
 
-Runs `plugin-eval score` (via the library, not the CLI subprocess) on every
-plugin directory under `plugins/`. External git-subdir plugins are skipped
-since their source does not exist locally. Outputs:
+Runs `plugin-eval score` through the library, not a CLI subprocess. By default
+it evaluates this repository; pass ``--plugins-dir`` to evaluate a marketplace
+``plugins/`` directory. Outputs:
 
-  reports/<plugin>.json          — raw result per plugin
-  reports/summary.md             — aggregated markdown report
-  reports/summary.json           — machine-readable aggregate
+  eval-reports/<plugin>.json      — raw result per plugin
+  eval-reports/summary.md         — aggregated markdown report
+  eval-reports/summary.json       — machine-readable aggregate
 
-Intended for CI usage but works locally too:
+Examples:
 
   uv run python scripts/eval_all.py --depth quick
+  uv run python scripts/eval_all.py --plugins-dir ../some-marketplace/plugins --depth quick
   uv run python scripts/eval_all.py --depth standard --output-dir /tmp/reports
 """
 
@@ -26,8 +27,7 @@ from pathlib import Path
 from plugin_eval.engine import EvalEngine
 from plugin_eval.models import Depth, EvalConfig, PluginEvalResult
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-PLUGINS_DIR = REPO_ROOT / "plugins"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 DEPTH_MAP = {
     "quick": Depth.QUICK,
@@ -52,11 +52,27 @@ class PluginRow:
     error: str | None = None
 
 
-def discover_plugins() -> list[Path]:
+def _is_plugin_dir(path: Path) -> bool:
+    return any(
+        (path / manifest).is_file()
+        for manifest in (
+            ".claude-plugin/plugin.json",
+            ".codex-plugin/plugin.json",
+            "kimi.plugin.json",
+        )
+    )
+
+
+def discover_plugins(plugins_dir: Path) -> list[Path]:
+    """Discover a single plugin root or direct children that are plugin roots."""
+    if not plugins_dir.is_dir():
+        raise FileNotFoundError(f"Plugin directory does not exist: {plugins_dir}")
+    if _is_plugin_dir(plugins_dir):
+        return [plugins_dir]
     return sorted(
         p
-        for p in PLUGINS_DIR.iterdir()
-        if p.is_dir() and (p / ".claude-plugin" / "plugin.json").exists()
+        for p in plugins_dir.iterdir()
+        if p.is_dir() and _is_plugin_dir(p)
     )
 
 
@@ -250,15 +266,26 @@ def main() -> int:
         default=None,
         help="Comma-separated plugin names to limit evaluation to",
     )
+    parser.add_argument(
+        "--plugins-dir",
+        type=Path,
+        default=PROJECT_ROOT,
+        help="A plugin root or directory containing plugin roots (default: this repository)",
+    )
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    plugins = discover_plugins()
+    try:
+        plugins = discover_plugins(args.plugins_dir.expanduser().resolve())
+    except FileNotFoundError as exc:
+        parser.error(str(exc))
     if args.only_changed:
         wanted = {n.strip() for n in args.only_changed.split(",") if n.strip()}
         plugins = [p for p in plugins if p.name in wanted]
+    if not plugins:
+        parser.error("No plugin roots found. Pass --plugins-dir with a plugin root or container.")
 
     config = EvalConfig(
         depth=DEPTH_MAP[args.depth],

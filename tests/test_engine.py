@@ -20,12 +20,14 @@ class TestEvalEngine:
         engine = EvalEngine(config)
         result = engine.evaluate_plugin(sample_plugin_dir)
         assert isinstance(result, PluginEvalResult)
+        assert result.composite is not None
         assert result.composite.score > 0
 
     def test_composite_score_within_bounds(self, sample_skill_dir: Path):
         config = EvalConfig(depth=Depth.QUICK)
         engine = EvalEngine(config)
         result = engine.evaluate_skill(sample_skill_dir)
+        assert result.composite is not None
         assert 0 <= result.composite.score <= 100
 
     def test_layer_blend_renormalization(self):

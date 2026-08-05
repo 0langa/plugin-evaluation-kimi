@@ -1,5 +1,6 @@
 import json
 import os
+from typing import BinaryIO
 from unittest.mock import MagicMock, patch
 
 from plugin_eval.kimi_backend import _parse_json_response, query_kimi
@@ -79,7 +80,15 @@ def test_temp_dir_cleanup_errors_do_not_discard_a_successful_result() -> None:
         seen_kwargs.append(kwargs)
         return real_temporary_directory(*args, **kwargs)
 
-    def fake_popen(command, cwd=None, env=None, stdout=None, stderr=None, creationflags=0):
+    def fake_popen(
+        command: object,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
+        stdout: BinaryIO | None = None,
+        stderr: BinaryIO | None = None,
+        creationflags: int = 0,
+    ) -> MagicMock:
+        assert stdout is not None
         stdout.write(json.dumps({"ok": True}).encode("utf-8"))
         stdout.flush()
         process = MagicMock()
@@ -119,7 +128,16 @@ def test_kimi_subprocess_runs_isolated_from_the_caller_cwd() -> None:
     """
     seen_cwd: list[str] = []
 
-    def fake_popen(command, cwd=None, env=None, stdout=None, stderr=None, creationflags=0):
+    def fake_popen(
+        command: object,
+        cwd: str | None = None,
+        env: dict[str, str] | None = None,
+        stdout: BinaryIO | None = None,
+        stderr: BinaryIO | None = None,
+        creationflags: int = 0,
+    ) -> MagicMock:
+        assert cwd is not None
+        assert stdout is not None
         seen_cwd.append(cwd)
         stdout.write(json.dumps({"ok": True}).encode("utf-8"))
         stdout.flush()

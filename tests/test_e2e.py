@@ -44,4 +44,5 @@ class TestE2ERealPlugins:
         config = EvalConfig(depth=Depth.QUICK)
         engine = EvalEngine(config)
         result = engine.evaluate_skill(skill_dir)
+        assert result.composite is not None
         assert result.composite.score > 30

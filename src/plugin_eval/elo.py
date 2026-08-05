@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Sequence
 
 
 class EloCalculator:
@@ -18,7 +19,7 @@ class EloCalculator:
         exp = self.expected(rating, opponent_rating)
         return rating + self.k_factor * (actual - exp)
 
-    def compute_rating(self, initial: float, matchups: list[tuple[float, float]]) -> float:
+    def compute_rating(self, initial: float, matchups: Sequence[tuple[float, float]]) -> float:
         """Compute final rating from (opponent_rating, actual_score) matchups."""
         rating = initial
         for opponent_rating, actual in matchups:
@@ -28,7 +29,7 @@ class EloCalculator:
     def compute_rating_with_ci(
         self,
         initial: float,
-        matchups: list[tuple[float, float]],
+        matchups: Sequence[tuple[float, float]],
         n_resamples: int = 500,
         seed: int | None = None,
     ) -> tuple[float, float, float]:

@@ -41,11 +41,6 @@ ignore = ["E501"]
 [tool.ruff.format]
 quote-style = "double"
 
-[tool.ty.environment]
-# Make `tools.adapters.*` importable when ty runs from plugins/plugin-eval/.
-# The repo-root layout puts the adapter framework outside this package.
-extra-paths = ["../.."]
-
 [tool.ty.rules]
 possibly-unresolved-reference = "error"
 possibly-missing-attribute = "error"
