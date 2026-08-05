@@ -19,7 +19,7 @@ The marketplace baseline run also exposed real product issues:
 - The frontmatter parser combines `description` and `when_to_use`, so trigger metadata is recognized for both supported forms.
 - Kimi-provider runs failed during the baseline due to hook JSON pollution and a broken RECALL hook path, so every certification fell back to `--provider codex` — notable for a package named after Kimi.
 - The `code_template_quality` dimension reports 0.000/unmeasured in composite output.
-- There is no Claude backend yet (`docs/claude-code.md` explicitly defers `claude_backend.py` as a follow-up), and no LICENSE file despite the marketplace registry claiming MIT. Tags through `v0.1.2` exist, and the CI workflow defines compile, Ruff, `ty`, and pytest gates.
+- There is no Claude backend yet (`docs/claude-code.md` explicitly defers `claude_backend.py` as a follow-up), and no LICENSE file despite the marketplace registry claiming MIT. `v0.1.3` carries the standalone-workflow repair; CI defines compile, Ruff, `ty`, and pytest gates.
 
 ## Definition of "finished"
 Version 1.0 means all of the following are true:

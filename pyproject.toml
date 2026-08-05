@@ -1,6 +1,6 @@
 [project]
 name = "plugin-evaluation-kimi"
-version = "0.1.2"
+version = "0.1.3"
 description = "Three-layer quality evaluation framework for OpenAI Codex plugins using Kimi by default"
 readme = "README.md"
 requires-python = ">=3.12"
