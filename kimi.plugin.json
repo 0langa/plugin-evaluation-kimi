@@ -1,7 +1,7 @@
 {
   "name": "plugin-evaluation-kimi",
-  "version": "0.1.3",
-  "description": "Three-layer quality evaluation for Codex, Claude Code, and Kimi Code plugins and skills.",
+  "version": "0.1.4",
+  "description": "Dormant: Evaluate plugins and skills with static checks and an optional model judge.",
   "keywords": [
     "plugin-evaluation",
     "skills",
@@ -16,8 +16,8 @@
   "license": "MIT",
   "interface": {
     "displayName": "Plugin Evaluation Kimi",
-    "shortDescription": "Score agent plugins and skills.",
-    "longDescription": "Runs static checks, structured judge evaluations, and optional Monte Carlo simulations for Codex, Claude Code, and Kimi Code plugin artifacts.",
+    "shortDescription": "Dormant: Evaluate plugins and skills with static checks and an optional model judge.",
+    "longDescription": "Dormant: Evaluate plugins and skills with static checks and an optional model judge. Available as-is, with no planned updates. Kimi compatibility is legacy.",
     "developerName": "PluginEval contributors",
     "websiteURL": "https://github.com/0langa/plugin-evaluation-kimi"
   },

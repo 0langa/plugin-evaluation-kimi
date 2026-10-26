@@ -1,15 +1,15 @@
 {
   "name": "plugin-evaluation-kimi",
-  "version": "0.1.3",
-  "description": "Three-layer quality evaluation for OpenAI Codex plugins and skills using Kimi by default.",
+  "version": "0.1.4",
+  "description": "Dormant: Evaluate plugins and skills with static checks and an optional model judge.",
   "author": {
     "name": "PluginEval contributors"
   },
   "skills": "./skills/",
   "interface": {
     "displayName": "Plugin Evaluation Kimi",
-    "shortDescription": "Score Codex plugins and skills with Kimi",
-    "longDescription": "Runs deterministic static checks, a structured Kimi/Moonshot judge, and optional Kimi Monte Carlo simulations. Reads PLUGIN_EVAL_KIMI_API_KEY from the user environment.",
+    "shortDescription": "Dormant: Evaluate plugins and skills with static checks and an optional model judge.",
+    "longDescription": "Dormant: Evaluate plugins and skills with static checks and an optional model judge. Available as-is, with no planned updates. Kimi compatibility is legacy.",
     "developerName": "PluginEval contributors",
     "category": "Coding",
     "capabilities": [

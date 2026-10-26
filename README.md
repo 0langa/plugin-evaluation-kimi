@@ -1,6 +1,9 @@
-# plugin-eval
+# Plugin Evaluation Kimi
 
-Three-layer quality evaluation framework for OpenAI Codex plugins and skills.
+> **Dormant:** Available as-is, with no planned updates. This plugin is no longer part of my maintained workflow. Existing releases remain installable.
+> Kimi compatibility is legacy and is not actively tested.
+
+Evaluate plugins and skills with static checks and optional Kimi or Codex judging.
 
 ## Quick Start
 
@@ -11,7 +14,7 @@ uv sync --extra dev
 # Evaluate a skill (static only, instant)
 uv run plugin-eval score path/to/skill --depth quick
 
-# Evaluate with a structured Codex judge (~20-60s)
+# Evaluate with a structured Kimi judge (~20-60s)
 uv run plugin-eval score path/to/skill --depth standard
 
 # Full certification (all layers, ~5 min)
@@ -21,8 +24,8 @@ uv run plugin-eval certify path/to/skill
 ## Layers
 
 1. **Static Analysis** — Structural checks, anti-pattern detection. Instant, free.
-2. **Codex Judge** — Semantic evaluation (triggering, orchestration, output, scope). One isolated structured Codex run per skill.
-3. **Monte Carlo** — Statistical reliability via 50–100 isolated Codex routing simulations.
+2. **Model Judge** — Semantic evaluation (triggering, orchestration, output, scope). Kimi is the default; Codex is optional.
+3. **Monte Carlo** — Statistical reliability via 50–100 model routing simulations.
 
 ## Commands
 
@@ -33,9 +36,9 @@ uv run plugin-eval certify path/to/skill
 | `plugin-eval compare` | Head-to-head comparison       |
 | `plugin-eval init`    | Build corpus for Elo ranking  |
 
-PluginEval calls the installed `codex` CLI with ephemeral sessions, a read-only sandbox,
-plugins and hooks disabled, and JSON Schema constrained output. It reuses the current Codex
-login; no separate Anthropic SDK or API key is required.
+Kimi/Moonshot is the default model provider and reads `PLUGIN_EVAL_KIMI_API_KEY` from the environment. Model judging and simulations can consume paid API credits; the quick static checks make no model calls.
+
+Select `--provider codex` to use the installed Codex CLI and its existing login. This optional backend runs isolated sessions with plugins and hooks disabled and uses the account's Codex allowance.
 
 ## Claude Code
 
