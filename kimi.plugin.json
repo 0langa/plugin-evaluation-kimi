@@ -1,6 +1,6 @@
 {
   "name": "plugin-evaluation-kimi",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Dormant: Evaluate plugins and skills with static checks and an optional model judge.",
   "keywords": [
     "plugin-evaluation",
